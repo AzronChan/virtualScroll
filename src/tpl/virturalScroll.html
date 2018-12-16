@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Virtual rolling</title>
+    <style>
+        .wrap {
+            width: 100%;
+            border: 1px solid #ccc;
+            overflow: auto;
+        }
+        .wrap .cnt {
+            overflow: hidden;
+        }
+        .wrap .box .list {
+            margin: 0;
+            padding: 0;
+        }
+        .wrap .box li {
+            line-height: 40px;
+            list-style: none;
+            border-bottom: 1px dashed #ccc;
+            height: 39px;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+<h1>虚拟滚动，处理大数据展示</h1>
+<div id="wrap" class="wrap" data-title="可视范围"></div>
+<div id="wrap2" class="wrap" data-title="可视范围"></div>
+<script src="../js/virturalScroll.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+	var arrData = [],
+        total = 100; //总共多少条数据
+    
+    for (let i = 0; i < 100; i++) {
+        arrData[i] = {
+            name: "测试数据" + (i),
+            title: "测试数据" + (i)
+        };
+    }
+    
+	var table = new virtualScroll({
+		lines : 9,	//行数
+		lineHeight : 40,//行高
+		total : 100,	//总数
+		data : arrData,	//数据
+		scrollDom : document.getElementById('wrap'),
+		listTemplate : function(i,data){
+			return "<li data-index=" + i + " data-title=" + data.title + ">" + data.name + "</li>";
+		}
+	});
+	table.init();
+	
+	var table2 = new virtualScroll({
+		lines : 9,	//行数
+		lineHeight : 40,//行高
+		total : 100,	//总数
+		data : arrData,	//数据
+		scrollDom : document.getElementById('wrap2'),
+		listTemplate : function(i,data){
+			return "<li data-index=" + i + " data-title=" + data.title + ">" + data.name + "</li>";
+		}
+	});
+	table2.init();
+</script>
+</body>
+</html>
