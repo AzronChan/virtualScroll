@@ -7,16 +7,9 @@
         .wrap {
             width: 100%;
             border: 1px solid #ccc;
-            overflow: auto;
         }
-        .wrap .cnt {
-            overflow: hidden;
-        }
-        .wrap .box .list {
-            margin: 0;
-            padding: 0;
-        }
-        .wrap .box li {
+
+        .wrap li {
             line-height: 40px;
             list-style: none;
             border-bottom: 1px dashed #ccc;
@@ -40,7 +33,6 @@
             title: "测试数据" + (i)
         };
     }
-    
 	var table = new virtualScroll({
 		lines : 9,	//行数
 		lineHeight : 40,//行高

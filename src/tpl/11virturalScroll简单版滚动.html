@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Virtual rolling 再写一次</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+
+      .virural-scroll--scroll {
+        border: 1px solid #000;
+      }
+
+      .virural-scroll--propup {
+      }
+
+      .virural-scroll--propup .li {
+        line-height: 39px;
+        border-bottom: 1px solid #000;
+      }
+
+      .virural-scroll--propup--view {
+        background: #ccc;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- 
+			1.虚拟滚动，即不显示全部的数据，在不显示全部数据，怎么出现滚动条呢；
+			2.先把最外框滚动的节点scrollDom给定一个高度，高度和我们一页要展示多少条一致；
+			3.然后用一个节点propupDom撑起，高度和一共和实际多少条列表的总和高度一致，就达到了有滚动的效果
+		-->
+    <!--
+        	1.有了列表之后不能直接把数据放到virural-scroll--propup中，这和我们的目的不一致
+        	1.数据直接在virural-scroll--propup中展示，不能达到虚拟的效果，目的一次是少渲染，并且随着我们的滚动不断加载数据
+        	1.随着我们的向下滚动不断往下加载数据，并且重点是随着滚动向下滚动不断减少上面已展示的数据，因为节点太多，还是会卡；
+        	1.我们先来实现不断往下滚动添加数据；
+        	1.首先得先渲染第一屏数据，然后向下滚动，取更多的数据
+        -->
+    <!--
+        	1.完成向下滚动后，来做已滚动过去的列表消失，那消失的列表就需要一个节点去撑起已消失的列表的高度，这里需要再添加三个div
+        	2、一个是已消失的列表的高度dom,一个是显示列表的高度
+        	3、用三个DIV来撑走不通，因为设置heigth引发重回跟不上onscroll，用marginTop,position也行
+        	4、onscroll的时候，计算marginTop，取去滚动到对应的位置时应该显示的数据
+        	5、但是这样做会导致不好，onscroll只能滚动到一个lineheight的倍数的时候才渲染一屏，不够自然，自然的情况是我们滚动多少，view会显示对应的滚动，会出现显示半个数据节点的情况
+        	6、用view来做定位，再用一个节点来做定位，以达到自然的效果;
+        	7、也就是说，因为scrollDom滚动到超过一个行高的时候viewDom才渲染新的一页数据，但是滚动到一个半行高的时候是没有反应的，这个时候用listDom来做一个定位，margintop负一个半的行号的显示
+        	8、listDom 的marginTop 的值应该是scrolldom的滚动高度 - 已滚动的条数的高，得出scrolldom节点的滚动高度与listdom渲染出来的节点的整数高度的差距，通常是0到一个行高的高度,比如滚动到20，scrolltop是20，listdom渲染出来的列表的第一条是在Y的0坐标，这个时候listdom设置-20px的margintop,就达到了前面说的滚动到一半个行高的效果
+        -->
+
+    <!--
+           	作者：zlong5568863@qq.com
+           	时间：2019-03-29
+           	描述：
+           	总结：
+           	1、virural-scroll--propup--view 始终是用于设置定位内容显示的位置；
+           	2、virural-scroll--propup--list 用于模拟自然滚动的效果，比如滚动一半个行高时，virural-scroll--propup--list的margintop为负一半的行高
+           -->
+    <div class="virural-scroll--scroll" data-title="可视范围">
+      <div class="virural-scroll--propup">
+        <div class="virural-scroll--propup--view">
+          <div class="virural-scroll--propup--list"></div>
+        </div>
+      </div>
+    </div>
+
+    <script type="text/javascript">
+      var scrollDom = document.querySelector(".virural-scroll--scroll"),
+        propupDom = document.querySelector(".virural-scroll--propup"),
+        viewDom = document.querySelector(".virural-scroll--propup--view"),
+        listDom = document.querySelector(".virural-scroll--propup--list"),
+        pageSize = 10,
+        total = 100,
+        lineHieght = 40,
+        listIndex = -1;
+      listHeight = 0; //列表高度
+
+      var data = [];
+      for (var i = 0; i < total; i++) {
+        data.push({
+          index: i
+        });
+      }
+
+      function setStyle() {
+        scrollDom.style.cssText =
+          "height:" + pageSize * lineHieght + "px;overflow:auto;";
+        propupDom.style.cssText =
+          "height:" + lineHieght * total + "px;overflow:hidden";
+        viewDom.style.cssText = "height:" + pageSize * lineHieght + "px;";
+      }
+      setStyle();
+
+      /**
+       * @param {Array} 截取出来的数组
+       */
+      function build(data) {
+        var str = "";
+
+        for (var i = 0; i < data.length; i++) {
+          str += '<div class="li">列表' + data[i].index + "</div>";
+        }
+
+        listDom.innerHTML = str;
+      }
+
+      function init() {
+        var range = 10;
+        var pageData = data.slice(0, range);
+        build(pageData);
+      }
+      init();
+
+      scrollDom.onscroll = function() {
+        var scrollTop = this.scrollTop;
+        var range = parseInt(scrollTop / lineHieght) + pageSize; //得出应该渲染的范围
+        var pageData = data.slice(range - pageSize, range); //取范围data
+        build(pageData);
+
+        viewDom.style.marginTop = this.scrollTop + "px";
+        console.log(
+          (this.scrollTop - (range - pageSize) * lineHieght) % lineHieght
+        );
+        listDom.style.marginTop =
+          ((-1 * (this.scrollTop - (range - pageSize) * lineHieght)) %
+            lineHieght) +
+          "px";
+      };
+    </script>
+  </body>
+</html>

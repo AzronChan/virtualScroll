@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta charset="UTF-8">
+		<title>Virtual rolling 再写一次</title>
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+			}
+			.virural-scroll--scroll {
+				border: 1px solid #000;
+			}
+			.virural-scroll--propup .li {
+				line-height: 39px;
+				border-bottom: 1px solid #000;
+			}
+			.virural-scroll--propup--view {
+				background: #ccc;
+			}
+		</style>
+	</head>
+
+	<body>
+		<!-- 
+			1.虚拟滚动，即不显示全部的数据，在不显示全部数据，怎么出现滚动条呢；
+			2.先把最外框滚动的节点scrollDom给定一个高度，高度和我们一页要展示多少条一致；
+			3.然后用一个节点propupDom撑起，高度和一共和实际多少条列表的总和高度一致，就达到了有滚动的效果
+		-->
+		<!--
+        	1.有了列表之后不能直接把数据放到virural-scroll--propup中，这和我们的目的不一致
+        	1.数据直接在virural-scroll--propup中展示，不能达到虚拟的效果，目的一次是少渲染，并且随着我们的滚动不断加载数据
+        	1.随着我们的向下滚动不断往下加载数据，并且重点是随着滚动向下滚动不断减少上面已展示的数据，因为节点太多，还是会卡；
+        	1.我们先来实现不断往下滚动添加数据；
+        	1.首先得先渲染第一屏数据，然后向下滚动，取更多的数据
+        -->
+        <!--
+        	1.完成向下滚动后，来做已滚动过去的列表消失，那消失的列表就需要一个节点去撑起已消失的列表的高度，这里需要再添加三个div
+        	2、一个是已消失的列表的高度dom,一个是显示列表的高度
+        	3、用三个DIV来撑走不通，因为设置heigth引发重回跟不上onscroll，用marginTop
+        	4、onscroll的时候，计算marginTop，然后把对应的数据渲染到view这里
+        	5、但是这样做会导致不好，onscroll只能滚动到一个lineheight的倍数的时候才渲染一屏
+        	6、
+        -->
+		<div class="virural-scroll--scroll" data-title="可视范围">
+			<div class="virural-scroll--propup">
+				<div class="virural-scroll--propup--view"></div>
+			</div>
+		</div>
+		
+		
+		<script type="text/javascript">
+			var scrollDom = document.querySelector('.virural-scroll--scroll'),
+				propupDom = document.querySelector('.virural-scroll--propup'),
+				propupMidDdom = document.querySelector('.virural-scroll--propup--view'),
+				pageSize = 10,
+				total = 100,
+				lineHieght = 40,
+				listIndex = -1;
+				listHeight = 0;	//列表高度
+			
+			var data = [];
+			for (var i = 0; i < total; i++){
+				data.push({
+					index : i
+				})
+			}
+			
+			function setStyle(){
+				scrollDom.style.cssText = 'height:' + pageSize * lineHieght + 'px;overflow:auto;';
+				propupDom.style.cssText = 'height:' + lineHieght * total + 'px;overflow:hidden';
+				propupMidDdom.style.cssText = 'height:' + pageSize * lineHieght + 'px;';
+
+			}
+			setStyle();
+			
+			
+			/**
+			 * @param {Array} 截取出来的数组
+			 */
+			function build(data){
+				var str = '';
+				
+				for (var i = 0; i < data.length; i++) {
+					str += '<div class="li">列表' + data[i].index + '</div>';
+				}
+				
+				propupMidDdom.innerHTML = str;
+			}
+			
+			for (var i = 0; i < pageSize; i++){
+				build(data[i]);	
+			}
+			
+			scrollDom.onscroll = function(){
+				if (this.scrollTop + scrollDom.clientHeight > listHeight){
+//					var overLines = Math.ceil((this.scrollTop + scrollDom.clientHeight - listHeight) / 40);	//滚动超出多少行
+//					console.log(overLines)
+//					var pageData = listHeight + 
+					
+//					for(var j = 0; j < overLines; j++ ){
+//						if(listIndex + 1 >= total){
+//							return;
+//						}
+//						build(data[listIndex + 1])
+//					}
+				}
+				
+				var scrollTop = this.scrollTop;
+				var range = parseInt(scrollTop / lineHieght) + pageSize;
+				var pageData = data.slice(range - pageSize, range)
+				build(pageData)
+				
+				propupMidDdom.style.marginTop = this.scrollTop + 'px';
+			}
+			
+		</script>
+	</body>
+
+</html>

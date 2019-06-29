@@ -21,6 +21,7 @@ virtualScroll.prototype = {
 			type: 'init'
 		})
 		this.scrollDom.onscroll = function() {
+			console.log()
 			_t.getData();
 		}
 	},
@@ -29,29 +30,32 @@ virtualScroll.prototype = {
 	 */
 	appendDom: function() {
 		var _t = this;
-
-		var heightDom = document.createElement('div'); //真实高度dom，撑起滚动条
-		heightDom.className = "cnt";
+		
+		//真实高度dom，撑起滚动条
+		var heightDom = document.createElement('div'); 
+		heightDom.className = "virtural-scroll--propup";
 		_t.scrollDom.appendChild(heightDom);
 		_t.heightDom = heightDom;
-
-		var clientDom = document.createElement('div'); //可视dom，撑起滚动条
-		clientDom.className = "box";
+		
+		//可视dom，随滚动条滚动
+		var clientDom = document.createElement('div'); 
+		clientDom.className = "virtural-scroll--view";
 		_t.heightDom.appendChild(clientDom);
 		_t.clientDom = clientDom;
-
+		
+		//列表节点，与可视dom节点一起模拟滚动
 		var scrollList = document.createElement('div'); //列表
-		scrollList.className = "list";
+		scrollList.className = "virtural-scroll--list";
 		_t.clientDom.appendChild(scrollList);
 		_t.scrollList = scrollList;
 	},
 	/**
-	 * @desc 设置样式
-	 */
-	setStyle: function() {
+	 * @description
+	 */setStyle: function() {
 		var _t = this;
-		_t.scrollDom.style.height = _t.clientDom.style.height = _t.lineHeight * _t.lines + 'px';
-		_t.heightDom.style.height = _t.lineHeight * _t.total + 'px';
+		_t.clientDom.style.height = _t.lineHeight * _t.lines + 'px';
+		_t.scrollDom.style.cssText = 'height:' + _t.lineHeight * _t.lines + 'px;overflow:auto';		
+		_t.heightDom.style.cssText = 'height:' + _t.lineHeight * _t.total + 'px;overflow:hidden';		
 	},
 	/**
 	 * @desc 获取数据
@@ -62,7 +66,7 @@ virtualScroll.prototype = {
 			scrollTop = this.scrollDom.scrollTop,
 			scrolled = Math.floor(scrollTop / _t.lineHeight), //滚动去多少条数据;
 			page = Math.floor(scrolled / _t.lines); //当前页数
-
+		//每次取两页数据，不用滚完一屏就拿数据
 		function render(index) {
 			_t.currentData = _t.data.slice(index * _t.lines, index * _t.lines + _t.lines * 2);
 			_t.scrollList.innerHTML = _t.build();
